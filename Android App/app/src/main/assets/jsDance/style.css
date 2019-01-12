@@ -1,0 +1,27 @@
+.stage {
+	background-color: black;
+	text-align: center;
+	height:460;
+	width:370;
+}
+#controls {
+	padding-left: 50px;
+}
+.score {
+color: white;
+}
+html, body {
+    overflow: hidden;
+}
+/*#left {
+
+}
+#up {
+
+}
+#down {
+
+}
+#right {
+
+}*/

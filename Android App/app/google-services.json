@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1036884106718",
+    "firebase_url": "https://justdance-68cba.firebaseio.com",
+    "project_id": "justdance-68cba",
+    "storage_bucket": "justdance-68cba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036884106718:android:fcfa0125da0ea27c",
+        "android_client_info": {
+          "package_name": "com.mehmetalp.justdance"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1036884106718-hftt4jua55qs14e6jlgnhpj95ckl95n4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mehmetalp.justdance",
+            "certificate_hash": "4f53b25c81d7d2c0aeb2b44e198135b206884c30"
+          }
+        },
+        {
+          "client_id": "1036884106718-grts673k6usbm51qv90t1phc408gckc7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdqVU0UdMHmlu2hw-2vj6weyYsR77FPgU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1036884106718-grts673k6usbm51qv90t1phc408gckc7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
