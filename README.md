@@ -1,4 +1,8 @@
-# JustDance
+
+  <p align="center">
+<img src="https://user-images.githubusercontent.com/19604984/51123338-eddfb700-182c-11e9-9b31-b13ae4eb0775.png">
+</p>
+
 
 ## Running the app
   Open the project in Android Studio
