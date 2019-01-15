@@ -30,7 +30,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.mehmetalp.justdance.models.User;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,HomeFragment.OnFragmentInteractionListener,HighScore.OnFragmentInteractionListener, ScoreFragment.OnFragmentInteractionListener, DanceVideosFragment.OnFragmentInteractionListener,DanceAnimGameFragment.OnFragmentInteractionListener{
+        implements NavigationView.OnNavigationItemSelectedListener,HomeFragment.OnFragmentInteractionListener,HighScore.OnFragmentInteractionListener, ScoreFragment.OnFragmentInteractionListener, DanceVideosFragment.OnFragmentInteractionListener,DanceAnimGameFragment.OnFragmentInteractionListener,UploadFragment.OnFragmentInteractionListener{
 
     private FirebaseAuth auth;
     private DatabaseReference databaseReferenceCustomers;
@@ -238,8 +238,10 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            Intent i = new Intent(this, CameraActivity.class);
-            startActivity(i);
+            UploadFragment fragment = new UploadFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragmentcontainer, fragment);
+            transaction.commit();
             // Handle the camera action
         } else if (id == R.id.nav_slideshow) {
             DanceVideosFragment fragment = new DanceVideosFragment();

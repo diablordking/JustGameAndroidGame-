@@ -117,14 +117,14 @@ public class DanceAnimGameFragment extends Fragment {
 
             auth = FirebaseAuth.getInstance();
 
-            PointCalculation pointer = new PointCalculation();
-            Double resultOfCalculation = pointer.CalculationFloss(Double.parseDouble(message));
+            //PointCalculation pointer = new PointCalculation();
+            // Double resultOfCalculation = pointer.CalculationFloss();
             Date scoreDate = new Date();
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             String strDate = dateFormat.format(scoreDate);
 
-            Score jsgameresult= new Score("Rhyme Game",resultOfCalculation.intValue(),auth.getCurrentUser().getDisplayName(),strDate);
+            Score jsgameresult= new Score("Rhyme Game",Integer.parseInt(message),auth.getCurrentUser().getEmail(),strDate);
             userId = auth.getUid();
 
 
@@ -133,6 +133,7 @@ public class DanceAnimGameFragment extends Fragment {
             createScore(userId,jsgameresult);
 
             Log.d("LogTag", message);
+            mWebView.loadUrl("file:///android_asset/jsDance/main.html"+"?score="+message);
 
             result.confirm();
             return true;
@@ -153,7 +154,7 @@ public class DanceAnimGameFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-      rootView = inflater.inflate(R.layout.fragment_dance_anim_game, container, false);
+        rootView = inflater.inflate(R.layout.fragment_dance_anim_game, container, false);
         runThread();
 
 
@@ -175,7 +176,6 @@ public class DanceAnimGameFragment extends Fragment {
                             mWebView.setWebViewClient(new MyWebViewClient());
                             mWebView.setWebChromeClient(new MyWebChromeClient());
                             mWebView = (WebView) rootView.findViewById(R.id.webview);
-                            mWebView.loadUrl("file:///android_asset/jsDance/main.html");
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                                 mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -193,7 +193,7 @@ public class DanceAnimGameFragment extends Fragment {
                             mWebView.getSettings().setAppCacheEnabled(true);
                             mWebView.getSettings().setDomStorageEnabled(true);
                             // Force links and redirects to open in the WebView instead of in a browser
-                            mWebView.setWebViewClient(new WebViewClient());
+                            mWebView.loadUrl("file:///android_asset/jsDance/main.html");
 
 
                         }

@@ -112,6 +112,7 @@ function randomGen() {
 }// ends randomGen()
 var score = 0;
 var arrowcounter = 10;
+var sart =0;
 
 // Render function //
 function render() {
@@ -127,6 +128,7 @@ function render() {
 
 		notes[i].step();
 
+
 		// Check for cleanup
 		if (notes[i].image.position().top > 615) {
 
@@ -135,105 +137,17 @@ function render() {
 		}
 
 	}
-	if (arrowcounter === 0 || 0 > arrowcounter )
+	if (arrowcounter === 0 && sart === 0 )
 	{
+				  sart =1;
 	          alert(score);
 	          console.log("Score:"+score);
 			  window.location.href = 'main.html?score='+score;
+
 	}
+	   $(".score").text("Score:"+score);
 
 }// ends render()
 //
-
-  $(document).click(function(event) { 
-   console.log(event.target.id);
-   	for (var i = 0; i < notes.length; i++) {
-	
-			console.log(notes[i].image.position().top);
-
-		if (event.target.currentSrc.substr(event.target.currentSrc.length - 5,1) == "t" && notes[i].direction == "left") {
-
-			if (notes[i].image.position().top > 460 && notes[i].image.position().top < 526) {
-				score+=10
-				console.log("LEFT! "+notes[i].explode());
-
-			}
-			
-		}
-		if (event.target.currentSrc.substr(event.target.currentSrc.length - 5,1)  == "p" && notes[i].direction == "up") {
-
-			if (notes[i].image.position().top > 460 && notes[i].image.position().top < 526) {
-								score+=10
-
-				console.log("UP! "+notes[i].explode());
-
-			}
-
-		}
-		if (event.target.currentSrc.substr(event.target.currentSrc.length - 5,1)  == "n" && notes[i].direction == "down") {
-
-			if (notes[i].image.position().top > 460 && notes[i].image.position().top < 526) {
-								score+=10
-
-				console.log("DOWN! "+notes[i].explode());
-
-			}
-
-		}
-		if (event.target.currentSrc.substr(event.target.currentSrc.length - 6,2)  == "ht"	 && notes[i].direction == "right") {
-
-			if (notes[i].image.position().top > 460 && notes[i].image.position().top < 526) {
-					score+=10
-				console.log("RIGHT! "+notes[i].explode());
-
-			}
-
-		}
-
-	}// 
-   
-   
-   
-   
-   
-  });
-
-
-// jQuery to animate arrows //
-$(document).ready(function () {
-
-	// shim layer with setTimeout fallback
-	window.requestAnimFrame = (function() {
-
-		return window.requestAnimationFrame ||
-
-		window.webkitRequestAnimationFrame ||
-
-		window.mozRequestAnimationFrame ||
-
-		function(callback) {
-
-			//window.setTimeout(callback, 30 / 60);
-
-		};
-
-	})();
-
-	/*	place the rAF *before* the render() 
-		to assure as close to 60fps with the 
-		setTimeout fallback.					*/
-
-	// Infinte loop for game play
-	(function animloop() {
-
-		requestAnimFrame(animloop);
-
-		render();
-
-	})();// ends (function animloop() )
-
-
-});// ends $(doc).ready
-
 
 

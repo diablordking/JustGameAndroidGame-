@@ -2,6 +2,7 @@ package com.mehmetalp.justdance;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,15 +18,24 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -50,8 +60,11 @@ import net.gotev.uploadservice.okhttp.OkHttpStack;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.okhttp3.StethoInterceptor;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 
@@ -69,6 +82,7 @@ public class UploadActivity extends Activity {
     private VideoView vidPreview;
     private Button btnUpload;
     private Button cancelBtn;
+    private Button pickBtn;
 
     private FirebaseAuth auth;
     private DatabaseReference mFirebaseDatabase;
@@ -82,9 +96,9 @@ public class UploadActivity extends Activity {
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .retryOnConnectionFailure(true)
-                .connectTimeout(5, TimeUnit.MINUTES)
-                .writeTimeout(5, TimeUnit.MINUTES)
-                .readTimeout(5, TimeUnit.MINUTES)
+                .connectTimeout(10, TimeUnit.MINUTES)
+                .writeTimeout(10, TimeUnit.MINUTES)
+                .readTimeout(10, TimeUnit.MINUTES)
 
                 // you can add your own request interceptors to add authorization headers.
                 // do not modify the body or the http method here, as they are set and managed
@@ -117,6 +131,14 @@ public class UploadActivity extends Activity {
                 .cache(null)
                 .build();
     }
+
+    public void addPhoto(View view) {
+
+        Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        photoPickerIntent.setType("*/*");
+        startActivityForResult(photoPickerIntent, 1);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,12 +146,8 @@ public class UploadActivity extends Activity {
         txtPercentage = (TextView) findViewById(R.id.txtPercentage);
         btnUpload = (Button) findViewById(R.id.btnUpload);
         cancelBtn = (Button) findViewById(R.id.CancelBtn);
+        pickBtn = (Button) findViewById(R.id.pickBtn);
 
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressBar2 = (ProgressBar) findViewById(R.id.progressBar2);
-
-        imgPreview = (ImageView) findViewById(R.id.imgPreview);
-        vidPreview = (VideoView) findViewById(R.id.videoPreview);
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         // Or, you can define it manually.
         UploadService.NAMESPACE = "com.mehmetalp.justdance";
@@ -138,35 +156,54 @@ public class UploadActivity extends Activity {
         UploadService.HTTP_STACK = new OkHttpStack(getOkHttpClient());
 
 
-        // Receiving the data from previous activity
-        Intent i = getIntent();
+//        // Receiving the data from previous activity
+//        Intent i = getIntent();
+//
+//        // image or video path that is captured in previous activity
+//        filePath = i.getStringExtra("filePath");
+//
+//        // boolean flag to identify the media type, image or video
+//        boolean isImage = i.getBooleanExtra("isImage", true);
 
-        // image or video path that is captured in previous activity
-        filePath = i.getStringExtra("filePath");
-
-        // boolean flag to identify the media type, image or video
-        boolean isImage = i.getBooleanExtra("isImage", true);
-
-        if (filePath != null) {
-            // Displaying the image or video on the screen
-            previewMedia(isImage);
-        } else {
-            Toast.makeText(getApplicationContext(),
-                    "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
-        }
-
-        btnUpload.setOnClickListener(new View.OnClickListener() {
+//        if (filePath != null) {
+//            // Displaying the image or video on the screen
+//            previewMedia(isImage);
+//        } else {
+//            Toast.makeText(getApplicationContext(),
+//                    "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
+//        }
+        pickBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 // uploading the file to server
                 //new UploadFileToServer().execute();
-                uploadMultipart(filePath);
-                Intent i = new Intent(getApplicationContext(),MainActivity.class);
-                startActivity(i);
+                Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                photoPickerIntent.setType("*/*");
+                startActivityForResult(photoPickerIntent, 1);
+
+
+
+
 
             }
         });
+
+
+
+//        btnUpload.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                // uploading the file to server
+//                //new UploadFileToServer().execute();
+//                uploadMultipart(filePath);
+//                Intent i = new Intent(getApplicationContext(),MainActivity.class);
+//                startActivity(i);
+//
+//
+//            }
+//        });
 
         cancelBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -179,6 +216,175 @@ public class UploadActivity extends Activity {
 
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == 1) {
+                Uri selectedImageUri = data.getData();
+
+                // OI FILE Manager
+                //filemanagerstring = selectedImageUri.getPath();
+                if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    // Should we show an explanation?
+                    if (shouldShowRequestPermissionRationale(
+                            Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        // Explain to the user why we need to read the contacts
+                    }
+
+                    requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            566454566);
+
+                    // MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE is an
+                    // app-defined int constant that should be quite unique
+
+                    return;
+                }
+
+                // MEDIA GALLERY
+                filePath = selectedImageUri.getPath();
+                File a = new File(filePath);
+
+                if (filePath != null) {
+                    uploadMultipart(selectedImageUri.toString());
+                    Intent i = new Intent(getApplicationContext(),MainActivity.class);
+                    startActivity(i);
+                }
+            }
+        }
+    }
+
+    // UPDATED!
+    public  String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+
+                // TODO handle non-primary volumes
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[]{
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context       The context.
+     * @param uri           The Uri to query.
+     * @param selection     (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+                                       String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
+    public static MultipartBody.Part getMultiPartBody(String key, String mMediaUrl) {
+        if (mMediaUrl != null) {
+            File file = new File(mMediaUrl);
+            RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+            return MultipartBody.Part.createFormData(key, file.getName(), requestFile);
+        } else {
+            return MultipartBody.Part.createFormData(key, "");
+        }
+    }
     /**
      * Displaying captured image/video on the screen
      * */

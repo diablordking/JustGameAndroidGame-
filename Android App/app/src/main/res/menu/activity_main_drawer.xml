@@ -11,7 +11,7 @@
         <item
             android:id="@+id/nav_camera"
             android:icon="@drawable/ic_menu_camera"
-            android:title="Camera" />
+            android:title="File Upload" />
 
         <item
             android:id="@+id/nav_slideshow"

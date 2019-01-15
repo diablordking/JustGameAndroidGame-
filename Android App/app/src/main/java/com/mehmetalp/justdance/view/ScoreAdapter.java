@@ -92,9 +92,17 @@ public class ScoreAdapter extends ArrayAdapter<Score> implements View.OnClickLis
         Animation animation = AnimationUtils.loadAnimation(mContext, (position > lastPosition) ? R.anim.up_from_bottom : R.anim.down_from_top);
         result.startAnimation(animation);
         lastPosition = position;
+
+        if(dataModel.getType() != null) {
+
+
         if (dataModel.getType().equals("Rhyme Game"))
         {
             Ion.with(viewHolder.profilpic).load("file:///android_asset/rhyme.gif");
+        }
+        else {
+            Ion.with(viewHolder.profilpic).load("file:///android_asset/giphy.gif");
+        }
         }
         else {
             Ion.with(viewHolder.profilpic).load("file:///android_asset/giphy.gif");

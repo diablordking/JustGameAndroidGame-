@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class HighScoreAdapter extends ArrayAdapter<Score> implements View.OnClickListener{
+public class HighScoreAdapter extends ArrayAdapter<Score> implements View.OnClickListener {
 
     private ArrayList<Score> dataSet;
     Context mContext;
@@ -46,16 +46,16 @@ public class HighScoreAdapter extends ArrayAdapter<Score> implements View.OnClic
     public HighScoreAdapter(ArrayList<Score> data, Context context) {
         super(context, R.layout.row_item2, data);
         this.dataSet = data;
-        this.mContext=context;
+        this.mContext = context;
 
     }
 
     @Override
     public void onClick(View v) {
 
-        int position=(Integer) v.getTag();
-        Object object= getItem(position);
-        Score dataModel=(Score)object;
+        int position = (Integer) v.getTag();
+        Object object = getItem(position);
+        Score dataModel = (Score) object;
 
 
     }
@@ -81,21 +81,25 @@ public class HighScoreAdapter extends ArrayAdapter<Score> implements View.OnClic
             viewHolder.txtVersion = (TextView) convertView.findViewById(R.id.version_number);
             viewHolder.profilpic = (ImageView) convertView.findViewById(R.id.iv_cover);
 
-            if (dataModel.getType().equals("Rhyme Game")) {
-                Ion.with(viewHolder.profilpic).load("file:///android_asset/rhyme.gif");
-            }
-            else {
+
+            if (dataModel.getType() != null) {
+                if (dataModel.getType().equals("Rhyme Game")) {
+                    Ion.with(viewHolder.profilpic).load("file:///android_asset/rhyme.gif");
+                } else {
+                    Ion.with(viewHolder.profilpic).load("file:///android_asset/giphy.gif");
+                }
+            } else {
                 Ion.with(viewHolder.profilpic).load("file:///android_asset/giphy.gif");
             }
             viewHolder.username = (TextView) convertView.findViewById(R.id.username);
             viewHolder.scoredate = (TextView) convertView.findViewById(R.id.scoredate);
 
-            result=convertView;
+            result = convertView;
 
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
-            result=convertView;
+            result = convertView;
         }
 
         Animation animation = AnimationUtils.loadAnimation(mContext, (position > lastPosition) ? R.anim.up_from_bottom : R.anim.down_from_top);
@@ -103,8 +107,8 @@ public class HighScoreAdapter extends ArrayAdapter<Score> implements View.OnClic
         lastPosition = position;
 
         viewHolder.txtName.setText(dataModel.getType());
-        viewHolder.txtVersion.setText(dataModel.getPoint()+"");
-        viewHolder.username.setText(dataModel.getUsername()+"");
+        viewHolder.txtVersion.setText(dataModel.getPoint() + "");
+        viewHolder.username.setText(dataModel.getUsername() + "");
         viewHolder.scoredate.setText(dataModel.getScoreDate());
         Ion.with(viewHolder.profilpic).load("file:///android_asset/giphy.gif");
 

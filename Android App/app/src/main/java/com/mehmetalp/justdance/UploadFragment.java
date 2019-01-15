@@ -1,9 +1,11 @@
 package com.mehmetalp.justdance;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -21,6 +23,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.facebook.stetho.okhttp3.StethoInterceptor;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.mehmetalp.justdance.models.Score;
+
+import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.ServerResponse;
+import net.gotev.uploadservice.UploadInfo;
+import net.gotev.uploadservice.UploadNotificationConfig;
+import net.gotev.uploadservice.UploadService;
+import net.gotev.uploadservice.UploadStatusDelegate;
+import net.gotev.uploadservice.okhttp.OkHttpStack;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -32,6 +48,19 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
+
+import static android.app.Activity.RESULT_OK;
 
 
 /**
@@ -50,13 +79,21 @@ public class UploadFragment extends Fragment {
     private static final String TAG = UploadFragment.class.getSimpleName();
 
     private ProgressBar progressBar;
+    private ProgressBar progressBar2;
+
     private String filePath = null;
     private TextView txtPercentage;
     private ImageView imgPreview;
     private VideoView vidPreview;
     private Button btnUpload;
+    private Button cancelBtn;
+    private Button pickBtn;
+
+    private FirebaseAuth auth;
+    private DatabaseReference mFirebaseDatabase;
+    private FirebaseDatabase mFirebaseInstance;
     long totalSize = 0;
-    Boolean isImage=false;
+    private String userId;
 
     private OnFragmentInteractionListener mListener;
 
@@ -112,46 +149,110 @@ public class UploadFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
     }
+    private OkHttpClient getOkHttpClient() {
+        return new OkHttpClient.Builder()
+                .followRedirects(true)
+                .followSslRedirects(true)
+                .retryOnConnectionFailure(true)
+                .connectTimeout(10, TimeUnit.MINUTES)
+                .writeTimeout(10, TimeUnit.MINUTES)
+                .readTimeout(10, TimeUnit.MINUTES)
+
+                // you can add your own request interceptors to add authorization headers.
+                // do not modify the body or the http method here, as they are set and managed
+                // internally by Upload Service, and tinkering with them will result in strange,
+                // erroneous and unpredicted behaviors
+                .addNetworkInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request.Builder request = chain.request().newBuilder()
+                                .addHeader("myheader", "myvalue")
+                                .addHeader("mysecondheader", "mysecondvalue");
+
+                        return chain.proceed(request.build());
+                    }
+                })
+
+                // open up your Chrome and go to: chrome://inspect
+                .addNetworkInterceptor(new StethoInterceptor())
+
+                // if you use HttpLoggingInterceptor, be sure to put it always as the last interceptor
+                // in the chain and to not use BODY level logging, otherwise you will get all your
+                // file contents in the log. Logging body is suitable only for small requests.
+                .addInterceptor(new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+                    @Override
+                    public void log(String message) {
+                        Log.d("OkHttp", message);
+                    }
+                }).setLevel(HttpLoggingInterceptor.Level.HEADERS))
+
+                .cache(null)
+                .build();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView =inflater.inflate(R.layout.fragment_score, container, false);
-
-        if (getArguments() != null) {
-            filePath = getArguments().getString(ARG_PARAM1);
-            // isImage = getArguments().getBoolean(ARG_PARAM2);
-        }
-
+        View rootView =inflater.inflate(R.layout.activity_upload, container, false);
 
         txtPercentage = (TextView) rootView.findViewById(R.id.txtPercentage);
-        btnUpload = (Button)rootView. findViewById(R.id.btnUpload);
-        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
-        imgPreview = (ImageView) rootView.findViewById(R.id.imgPreview);
-        vidPreview = (VideoView) rootView.findViewById(R.id.videoPreview);
+        btnUpload = (Button) rootView.findViewById(R.id.btnUpload);
+        cancelBtn = (Button) rootView.findViewById(R.id.CancelBtn);
+        pickBtn = (Button) rootView.findViewById(R.id.pickBtn);
 
+
+
+        UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
+        // Or, you can define it manually.
+        UploadService.NAMESPACE = "com.mehmetalp.justdance";
         // Changing action bar background color
 
+        UploadService.HTTP_STACK = new OkHttpStack(getOkHttpClient());
 
-        if (filePath != null) {
-            // Displaying the image or video on the screen
-            previewMedia(isImage);
-        } else {
-            Toast.makeText(getActivity().getApplicationContext(),
-                    "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
-        }
 
-        btnUpload.setOnClickListener(new View.OnClickListener() {
+//        // Receiving the data from previous activity
+//        Intent i = getIntent();
+//
+//        // image or video path that is captured in previous activity
+//        filePath = i.getStringExtra("filePath");
+//
+//        // boolean flag to identify the media type, image or video
+//        boolean isImage = i.getBooleanExtra("isImage", true);
+
+//        if (filePath != null) {
+//            // Displaying the image or video on the screen
+//            previewMedia(isImage);
+//        } else {
+//            Toast.makeText(getApplicationContext(),
+//                    "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
+//        }
+        pickBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 // uploading the file to server
-                new UploadFragment.UploadFileToServer().execute();
+                //new UploadFileToServer().execute();
+                Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                photoPickerIntent.setType("*/*");
+                startActivityForResult(photoPickerIntent, 1);
+
+
+
+
+
             }
         });
 
 
-        // Inflate the layout for this fragment
+
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // uploading the file to server
+                Intent i = new Intent(getActivity().getApplicationContext(),MainActivity.class);
+                startActivity(i);            }
+        });
         return rootView;
     }
 
@@ -178,112 +279,137 @@ public class UploadFragment extends Fragment {
         super.onDetach();
         mListener = null;
     }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == 1) {
+                Uri selectedImageUri = data.getData();
 
-    private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
-        @Override
-        protected void onPreExecute() {
-            // setting progress bar to zero
-            progressBar.setProgress(0);
-            super.onPreExecute();
-        }
+                // OI FILE Manager
+                //filemanagerstring = selectedImageUri.getPath();
+                if (getActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
 
-        @Override
-        protected void onProgressUpdate(Integer... progress) {
-            // Making progress bar visible
-            progressBar.setVisibility(View.VISIBLE);
+                    // Should we show an explanation?
+                    if (shouldShowRequestPermissionRationale(
+                            Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        // Explain to the user why we need to read the contacts
+                    }
 
-            // updating progress bar value
-            progressBar.setProgress(progress[0]);
+                    requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            12354);
 
-            // updating percentage value
-            txtPercentage.setText(String.valueOf(progress[0]) + "%");
-        }
+                    // MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE is an
+                    // app-defined int constant that should be quite unique
 
-        @Override
-        protected String doInBackground(Void... params) {
-            return uploadFile();
-        }
-
-        @SuppressWarnings("deprecation")
-        private String uploadFile() {
-            String responseString = null;
-
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(Config.FILE_UPLOAD_URL);
-
-            try {
-                AndroidMultiPartEntity entity = new AndroidMultiPartEntity(
-                        new AndroidMultiPartEntity.ProgressListener() {
-
-                            @Override
-                            public void transferred(long num) {
-                                publishProgress((int) ((num / (float) totalSize) * 100));
-                            }
-                        });
-
-                File sourceFile = new File(filePath);
-
-                // Adding file data to http body
-                entity.addPart("file", new FileBody(sourceFile));
-
-                // Extra parameters if you want to pass to server
-//                entity.addPart("website",
-//                        new StringBody("www.androidhive.info"));
-//                entity.addPart("email", new StringBody("abc@gmail.com"));
-
-                totalSize = entity.getContentLength();
-                httppost.setEntity(entity);
-
-                // Making server call
-                HttpResponse response = httpclient.execute(httppost);
-                HttpEntity r_entity = response.getEntity();
-
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == 200) {
-                    // Server response
-                    responseString = EntityUtils.toString(r_entity);
-                } else {
-                    responseString = "Error occurred! Http Status Code: "
-                            + statusCode;
+                    return;
                 }
 
-            } catch (ClientProtocolException e) {
-                responseString = e.toString();
-            } catch (IOException e) {
-                responseString = e.toString();
+                // MEDIA GALLERY
+                filePath = selectedImageUri.getPath();
+                File a = new File(filePath);
+
+                if (filePath != null) {
+                    uploadMultipart(selectedImageUri.toString());
+//                    Intent i = new Intent(getActivity().getApplicationContext(),MainActivity.class);
+//                    startActivity(i);
+                }
             }
-
-            return responseString;
-
         }
+    }
 
-        @Override
-        protected void onPostExecute(String result) {
-            Log.e(TAG, "Response from server: " + result);
+    public void uploadMultipart(String pathtofile) {
+        //getting name for the image
 
-            // showing the server response in an alert dialog
-            showAlert(result);
+        //getting the actual path of the image
+//        String path = getPath(filePath);
 
-            super.onPostExecute(result);
+        //Uploading code
+        try {
+            String uploadId = UUID.randomUUID().toString();
 
+            //Creating a multi part request
+            new MultipartUploadRequest(getContext(), uploadId, Config.FILE_UPLOAD_URL)
+                    .addFileToUpload(pathtofile, "file") //Adding file
+                    //  .addParameter("name", name) //Adding text parameter to the request
+                    .setNotificationConfig(new UploadNotificationConfig())
+                    .setMaxRetries(1)
+                    .setDelegate(new UploadStatusDelegate() {
+                        @Override
+                        public void onProgress(Context context, UploadInfo uploadInfo) {
+                            // your code here
+                            uploadInfo.getProgressPercent();
+                        }
+
+                        @Override
+                        public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse,
+                                            Exception exception) {
+                            try {
+                                throw exception;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
+                            Log.e(TAG, "Response from server: " + serverResponse.getBodyAsString());
+
+                            // showing the server response in an alert dialog
+                            auth = FirebaseAuth.getInstance();
+
+
+                            PointCalculation pointer = new PointCalculation();
+                            Double resultOfCalculation = pointer.CalculationFloss(Double.parseDouble(serverResponse.getBodyAsString()));
+                            Date scoreDate = new Date();
+
+                            DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+                            String strDate = dateFormat.format(scoreDate);
+                            Score cameragameresult= new Score("Camera Game",resultOfCalculation.intValue(),auth.getCurrentUser().getEmail(),strDate);
+                            userId = auth.getUid();
+
+
+                            // showAlert(result);
+
+                            createScore(userId,cameragameresult);
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(Context context, UploadInfo uploadInfo) {
+                            // your code here
+                        }
+                    })
+                    .startUpload(); //Starting the upload
+
+
+        } catch (Exception exc) {
+            Toast.makeText(getActivity(), exc.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    private void createScore(String userid,Score score) {
+        mFirebaseInstance = FirebaseDatabase.getInstance();
+
+        // get reference to 'score' node
+        mFirebaseDatabase = mFirebaseInstance.getReference("score");
+
+        String orderid  = mFirebaseDatabase.push().getKey();
+
+
+        mFirebaseDatabase.child(userid).child(orderid).setValue(score);
+
+
 
     }
+
+
     /**
      * Method to show alert dialog
      * */
-    private void showAlert(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity().getApplicationContext());
-        builder.setMessage(message).setTitle("Response from Servers")
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // do nothing
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
+
 
 
     /**

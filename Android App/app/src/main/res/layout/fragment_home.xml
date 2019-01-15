@@ -78,7 +78,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="5dp"
-            android:text="Second: Video will be just 8 seconds not less not more. The app will help you with that. "
+            android:text="Second: Video will be just 8 seconds not less not more.And video should be square 400:400 size"
             android:textColor="@color/common_google_signin_btn_text_dark_focused" />
 
         <TextView
@@ -86,7 +86,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="5dp"
-            android:text="Third: App will show you a preview of the video and you can upload and we can evaluate dance performance."
+            android:text="Third: In App you can upload and App can evaluate dance performance."
             android:textColor="@color/common_google_signin_btn_text_dark_focused" />
 
         <TextView

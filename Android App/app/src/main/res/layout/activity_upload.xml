@@ -1,78 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:background="@color/colorPrimary"
-    android:orientation="vertical"
-    android:padding="10dp">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".UploadFragment">
 
-
-    <!-- To display picture taken -->
-
-    <ImageView
-        android:id="@+id/imgPreview"
-        android:layout_width="fill_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="15dp"
-        android:visibility="gone" />
-
-    <!-- Videoview to preview recorded video -->
-
-    <VideoView
-        android:id="@+id/videoPreview"
-        android:layout_width="fill_parent"
-        android:layout_height="400dp"
-        android:layout_marginTop="15dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/txtPercentage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"
-        android:textColor="@color/txt_font"
-        android:textSize="30dp" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="20dp"
-        android:layout_marginBottom="35dp"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btnUpload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp"
-        android:background="@color/btn_bg"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:text="@string/btnUploadToServer"
-        android:textColor="@color/white" />
-
-    <Button
-        android:id="@+id/CancelBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp"
-        android:background="@color/btn_bg"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:text="CANCEL"
-        android:textColor="@color/white" />
-
-    <ProgressBar
-        android:id="@+id/progressBar2"
+    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:layout_gravity="center|bottom"
-        android:layout_marginBottom="20dp"
-        android:visibility="gone" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <Button
+            android:id="@+id/pickBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="100dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/btn_bg"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="Upload Video"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/CancelBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="20dp"
+            android:background="@color/btn_bg"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="Cancel"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+
+</FrameLayout>
