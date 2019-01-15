@@ -15,7 +15,8 @@
 
 
 ## Running the app
-  For android application:
+   For android application:
+   
     - Open the project in Android Studio
     - Build the app
     - Run the app (Simulator/ Real Device - Targeted for API 28 Nexus 5X 1920x1080)
