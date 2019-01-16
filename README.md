@@ -21,11 +21,18 @@
     - Build the app
     - Run the app (Simulator/ Real Device - Targeted for API 28 Nexus 5X 1920x1080)
 
-  For flask tensorflow posenet API:
+   For flask tensorflow posenet API:
+   
+    - step copy conda env file 
+    - install cuda 8.0 from tfpose run file
+    - instal cudnn v6.0 from tfpose directory
+    - symlink to ubuntu 16.0 ld_library and cuda env 
+    - activate conda tfpose environment 
+    - run python3 app.py
       
 ## About the app
 
-  Mobile application that’s the camera-based game that measure your body movement and score them according to Fornite Floss Dance. 
+  Mobile application that’s the video-based game that measure your body movement and score them according to Fornite Floss Dance. 
 
 App is targeted to people of any age:
   
