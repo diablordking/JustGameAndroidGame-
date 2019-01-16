@@ -13,6 +13,9 @@
 [![GitHub Issues](https://img.shields.io/github/issues/anfederico/Stocktalk.svg)](https://github.com/anfederico/stocktalk/issues)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
+  <p align="center">
+  <img src="https://user-images.githubusercontent.com/19604984/51222579-62127b80-194f-11e9-9b52-66592c2d2111.png" width=40% height=40%>
+</p>
 
 ## Running the app
    For android application:
