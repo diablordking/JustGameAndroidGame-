@@ -26,7 +26,7 @@
 
    For flask tensorflow posenet API:
    
-    - install conda env file 
+    - install conda env file (environment.yaml)
     - install cuda 8.0  
     - instal cudnn v6.0
     - symlink to ubuntu 16.0 ld_library and cuda env 
